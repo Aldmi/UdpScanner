@@ -3,7 +3,7 @@ using System.Text;
 namespace Contracts;
 
 
-public record ScannerPayload(int ListenPortNumber, DateTime CreatedAt)
+public record ScannerPayload(int ListenPortNumber, DateTime CreatedAtUtc)
 {
 	public static ScannerPayload Create(int portNumber)
 	{
@@ -13,7 +13,8 @@ public record ScannerPayload(int ListenPortNumber, DateTime CreatedAt)
 	
 	public byte[] ToBuffer()
 	{
-		string formatString = $"{ListenPortNumber}_{CreatedAt}";
+		long unixTime = ((DateTimeOffset)CreatedAtUtc).ToUnixTimeSeconds();
+		string formatString = $"{ListenPortNumber}_{unixTime}";
 		return Encoding.ASCII.GetBytes(formatString);
 	}
 	
@@ -25,6 +26,10 @@ public record ScannerPayload(int ListenPortNumber, DateTime CreatedAt)
 		{
 			throw new ArgumentException("invalid buffer");
 		}
-		return new ScannerPayload (int.Parse(parts[0]), DateTime.Parse(parts[1]));
+		
+		DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(int.Parse(parts[1]));
+		var createdAtUtc = dateTimeOffset.UtcDateTime;
+		var listenPortNumber = int.Parse(parts[0]);
+		return new ScannerPayload (listenPortNumber, createdAtUtc);
 	}
 }

@@ -5,7 +5,8 @@ using System.Text;
 namespace Contracts;
 
 
-public record TagPayload(string Name, string MacAddress, DateTime CreatedAt)
+
+public record TagPayload(string Name, string MacAddress, DateTime CreatedAtUtc)
 {
 	
 	public static TagPayload Create(string name, string macAddress)
@@ -16,7 +17,8 @@ public record TagPayload(string Name, string MacAddress, DateTime CreatedAt)
 	
 	public byte[] ToBuffer()
 	{
-		string formatString = $"{Name}_{MacAddress}_{CreatedAt}";
+		long unixTime = ((DateTimeOffset)CreatedAtUtc).ToUnixTimeSeconds();
+		string formatString = $"{Name}_{MacAddress}_{unixTime}";
 		return Encoding.ASCII.GetBytes(formatString);
 	}
 	
@@ -30,6 +32,10 @@ public record TagPayload(string Name, string MacAddress, DateTime CreatedAt)
 			throw new ArgumentException("invalid buffer");
 		}
 		
-		return new TagPayload(parts[0], parts[1], DateTime.Parse(parts[2]));
+		var name = parts[0];
+		var macAddress = parts[1];
+		DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(int.Parse(parts[2]));
+		var createdAtUtc = dateTimeOffset.UtcDateTime;
+		return new TagPayload(name, macAddress, createdAtUtc);
 	}
 }
