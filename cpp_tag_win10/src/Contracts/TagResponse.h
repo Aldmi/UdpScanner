@@ -16,7 +16,6 @@ public:
         CreatedAtUnixTime = unixTimeNowUtc();
     }
 
-
     string GetStringResponse()
     {
         std::ostringstream oss;
@@ -24,13 +23,12 @@ public:
         return oss.str();
     }
 
-
     string Print()
     {
         std::ostringstream oss;
         oss
-                << " Name= " << Name
-                << " Payload= " << Payload
+        << " Name= " << Name
+        << " Payload= " << Payload
         << " CreatedAt= " << UnixTimeToString(CreatedAtUnixTime, "%d-%m-%Y %H:%M:%S");
         return oss.str();
     }
