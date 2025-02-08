@@ -6,6 +6,11 @@
 #include <unistd.h>
 #include <sstream>
 
+#include "../Contracts/TagRequest.h"
+#include "../Contracts/TagResponse.h"
+#include "../Shared/Shared.h"
+#include "../Payload/TagPayload.h"
+
 using namespace std;
 
 const int BUF_SIZE = 1024;
@@ -35,7 +40,10 @@ private:
     SOCKET serverSocket;
     int bytes_received;
     char serverBuf[BUF_SIZE];
+
     int _listenPort;
+    string _tagName;
+    string _payload;
     WorkState workState = WorkState::None;
     string workErrorMessage;
 
@@ -73,9 +81,11 @@ private:
     }
 
 public:
-    TagPing(int listenPort)
+    TagPing(int listenPort, string tagName, string payload)
     {
         _listenPort = listenPort;
+        _tagName = tagName;
+        _payload = payload;
     }
 
 
@@ -89,15 +99,13 @@ public:
             {
                 Dispose();
                 sleep(1);
-                cout << std::endl << "Dispose success" << std::endl ;
+                cout << std::endl << "Dispose success" << std::endl;
             }
 
             workState = InitSocketLib();
             Print();
             if(workState == WorkState::Error)
-            {
-                return false;
-            }
+                continue;
 
             workState = CreateUdpSocket();
             Print();
@@ -187,6 +195,7 @@ public:
      */
     ListenPingResult LitenPing(bool& cancelFlag)
     {
+        cout << std::endl << "+++++++++++++++++++++++++++++++++++++++++++"<< std::endl ;
         int failedCounter = 0;
         while (!cancelFlag)
         {
@@ -195,10 +204,11 @@ public:
                 struct sockaddr_in SenderAddr;
                 int senderAddrSize = sizeof(SenderAddr);
 
-                auto success= WaitScannerData(SenderAddr, senderAddrSize);
+                auto success= WaitTagRequest(SenderAddr, senderAddrSize); //TODO: Добавить заголовок пакета, чтобы идентифицировать именно запросы от сканера.
                 if(!success)
                 {
                     //Ошибка получения данных от сканера
+                    cout << workErrorMessage << std::endl;
                     if(failedCounter++ > failedCounterMax)
                     {
                         return ListenPingResult::Error;
@@ -206,11 +216,16 @@ public:
                     continue;
                 }
 
-                ScannerDataHandle(serverBuf, bytes_received);
+                //Читаем данные от сканера.
+                auto tagRequest= TagRequest::CreateFromBuffer(serverBuf);
+                cout << "TagRequest " << tagRequest.Print() << std::endl;
 
-                CreateTagPayload();
+                //создать ответ сканеру.
+                auto tagResponse= TagResponse(_tagName, _payload);
+                cout << "TagResponse " << tagResponse.Print() << std::endl;
 
-                success= SendTagPayload(SenderAddr);
+                //Отправить ответ сканеру.
+                success= SendTagResponse(SenderAddr, tagRequest.ReceiverPort, tagResponse);
                 if(!success)
                 {
                     //Ошибка Отправки ответа сканеру
@@ -234,14 +249,14 @@ public:
     }
 
 
-    bool WaitScannerData(sockaddr_in& senderAddr, int& senderAddrSize)
+    bool WaitTagRequest(sockaddr_in& senderAddr, int& senderAddrSize)
     {
         printf("Waiting datagrams on Scanner...\n");
         bytes_received = recvfrom(serverSocket, serverBuf, BUF_SIZE, 0 /* no flags*/, (SOCKADDR *) &senderAddr,&senderAddrSize);  //bocking ожидание запроса от клиента
         if (bytes_received == SOCKET_ERROR)
         {
             std::ostringstream oss;
-            oss << "recvfrom failed with error: " << WSAGetLastError();
+            oss << "WaitTagRequest with error: " << WSAGetLastError();
             workErrorMessage = oss.str();
             return false;
         }
@@ -249,30 +264,15 @@ public:
     }
 
 
-     // Обработка ping запроса от сканера.
-     void ScannerDataHandle(char* data, size_t size) //TODO: вернуть ScannerPayload
-     {
-         printf("Receiving data on '%s\n'", data);
-     }
-
-
-    // Создать TagPayload
-    void CreateTagPayload() //TODO: вернуть TagPayload
-    {
-
-    }
-
-
     // Отправить Payload
-    bool SendTagPayload(sockaddr_in& senderAddr)
+    bool SendTagResponse(sockaddr_in& senderAddr, int receiverPort, TagResponse& tagResponse)
     {
-        //Данные с tagPayload
-        std::string tagPayload = "Device1_10-20-30-40-5F-FF_02.02.2025 15:15:16"; //
-        auto listenPort = 11001;
-        int sendBufLen = (int) (tagPayload.length());
+        //выставить порт в который принимает сканер ответы от тега.
+        senderAddr.sin_port = htons(receiverPort);
 
-        senderAddr.sin_port = htons(listenPort);
-        int sendResult = sendto(serverSocket, tagPayload.data(), sendBufLen, 0, (SOCKADDR *) &senderAddr, sizeof(senderAddr));
+        auto dataStr= tagResponse.GetStringResponse(); //"Device1_10-20-30-40-5F-FF_1739006312"
+        int sendBufLen = (int) (dataStr.length());
+        int sendResult = sendto(serverSocket, dataStr.data(), sendBufLen, 0, (SOCKADDR *) &senderAddr, sizeof(senderAddr));
         if (sendResult == SOCKET_ERROR)
         {
             std::ostringstream oss;
@@ -280,8 +280,7 @@ public:
             workErrorMessage = oss.str();
             return false;
         }
-
-        printf("Sending back response Bytes %d\n", sendResult); //Кол-во отправленых байт
+        printf("successfully sent a response Bytes %d >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n", sendResult);
         return true;
     }
 

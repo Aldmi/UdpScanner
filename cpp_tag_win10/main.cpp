@@ -7,11 +7,17 @@ int main()
 
     //Прочитать настройки из .env---------
     int listenPort= 11000;
+    string tagName= "Device1";
     //------------------------------------
 
-    string errorMessage;
-    auto udpPing = TagPing(listenPort);
+    //Получить информацию про устройство
+    auto tagPayload= TagPayload();
+    auto payload= tagPayload.printMACAddress();
+    std::cout << payload << std::endl;
+    //------------------------------------
 
+    //Запустить задачу обработки запросов от сканера
+    auto udpPing = TagPing(listenPort, tagName, payload);
     bool cancelFlag = false;
     auto res= udpPing.StartWork(cancelFlag);
 
