@@ -37,18 +37,22 @@ public class UdpScanner
 			var listenerTask = CreateListenerTask(_cts.Token);
 			Status = ScannerStatus.Started;
 			await await Task.WhenAny(senderTask, listenerTask);
-			return Result.Success(ScannerStatus.Stopped);
+			Status = ScannerStatus.Stopped;
+			return Result.Success(Status);
 		}
 		catch (SocketException e)
 		{
+			Status = ScannerStatus.Error;
 			return Result.Failure<ScannerStatus>($"SocketException= '{e.Message}'");
 		}
 		catch (OperationCanceledException)
 		{
-			return Result.Success(ScannerStatus.Stopped);
+			Status = ScannerStatus.Stopped;
+			return Result.Success(Status);
 		}
 		catch (Exception e)
 		{
+			Status = ScannerStatus.Error;
 			return Result.Failure<ScannerStatus>($"Exception= '{e.Message}'");
 		}
 		finally
@@ -91,6 +95,8 @@ public class UdpScanner
 	}
 
 
+	private int counetr = 0;
+	
 	private async Task CreateListenerTask(CancellationToken ct)
 	{
 		UdpClient listener = new UdpClient(ListenPort) { EnableBroadcast = true };
@@ -117,7 +123,14 @@ public class UdpScanner
 				// }
 				Console.WriteLine($"Received response from TAG {groupEp}=  '{tagPayload}'"); //Добавлять в список новый элемент по mac-addr
 				Console.WriteLine($"---------------------------------------\n\n");
-				throw new Exception("DEBUG EXCEPTION");
+
+				if (counetr++ > 3)
+				{
+					counetr = -1000;
+					throw new Exception("DEBUG EXCEPTION");
+				}
+
+			
 			}
 		}
 		finally

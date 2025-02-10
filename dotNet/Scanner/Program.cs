@@ -32,11 +32,11 @@ var udpScanner= new UdpScanner
 };
 
 
-Task.Run(async () =>
- {
- 	await Task.Delay(3000);
- 	await udpScanner.Stop();
- });
+// Task.Run(async () =>
+//  {
+//  	await Task.Delay(3000);
+//  	await udpScanner.Stop();
+//  });
 
 
 var res= await udpScanner.Start();
