@@ -4,12 +4,53 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:ScannerWpf.Views"
-             mc:Ignorable="d"
-             d:DesignHeight="600" d:DesignWidth="600">
-    <StackPanel>
-        <Label Content="Hello please write your name" />
-        <TextBox x:Name="Name" />
-        <Button x:Name="SayHello"
-                Content="Click Me" />
-    </StackPanel>
+             Width="600"
+             Height="600"
+           >
+    
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        
+        <!-- Label + TextBox для ввода данных -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <Label Content="Введите данные:" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBox x:Name="InputTextBox" Width="200" VerticalAlignment="Center" />
+        </StackPanel>
+        
+        <!-- Кнопка Start/Stop -->
+        <Button x:Name="StartStopButton" Grid.Row="1" Grid.Column="0" Content="Старт" Width="100" HorizontalAlignment="Left" Margin="0,0,0,10" />
+        
+        <!-- ListBox для вывода лога -->
+        <ListBox  x:Name="LogListBox" Grid.Row="2" Grid.Column="0" Margin="0,0,0,10">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        
+        <!-- Кнопка для очистки лога -->
+        <Button x:Name="ClearLogButton" Grid.Row="3" Grid.Column="0" Content="Очистить лог" Width="100" HorizontalAlignment="Left" />
+        
+        
+        <!-- ListBox для вывода результатов поиска -->
+        <ListBox  x:Name="ScannerResultListBox" Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Margin="10,0,0,10">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        
+    </Grid> 
 </UserControl>

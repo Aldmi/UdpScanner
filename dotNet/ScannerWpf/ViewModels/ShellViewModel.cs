@@ -18,10 +18,7 @@ public class ShellViewModel : PropertyChangedBase
 		}
 	}
 
-	public bool CanSayHello
-	{
-		get { return !string.IsNullOrWhiteSpace(Name); }
-	}
+	public bool CanSayHello => !string.IsNullOrWhiteSpace(Name);
 
 	public void SayHello()
 	{
