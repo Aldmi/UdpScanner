@@ -2,7 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 using Contracts;
-using Scanner;
+using Contracts.Services;
 
 /*
  Запускает 2 параллельные задачи

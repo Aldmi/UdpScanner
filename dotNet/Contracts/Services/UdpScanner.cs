@@ -1,9 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
-using Contracts;
 using CSharpFunctionalExtensions;
 
-namespace Scanner;
+namespace Contracts.Services;
 
 public enum ScannerStatus
 {
