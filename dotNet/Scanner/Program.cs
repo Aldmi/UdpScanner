@@ -1,8 +1,4 @@
-﻿using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using Contracts;
-using Contracts.Services;
+﻿using Contracts.Services;
 
 /*
  Запускает 2 параллельные задачи

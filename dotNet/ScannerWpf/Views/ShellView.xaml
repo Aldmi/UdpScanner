@@ -21,17 +21,31 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         
-        <!-- Label + TextBox для ввода данных -->
-        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,10">
-            <Label Content="Введите данные:" VerticalAlignment="Center" Margin="0,0,10,0" />
-            <TextBox x:Name="InputTextBox" Width="200" VerticalAlignment="Center" />
+        <!-- Настройки -->
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <Label Content="Подсеть (ххх.ххх.х):" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBox x:Name="SubNetworkAddress" Width="200" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <Label Content="Порт запроса" VerticalAlignment="Center"  Margin="0,0,10,0" />
+                <TextBox x:Name="RequestPort" Width="200" VerticalAlignment="Center" HorizontalAlignment="Right" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <Label Content="Порт ответа" VerticalAlignment="Center"  Margin="0,0,10,0" />
+                <TextBox x:Name="ListenPort" Width="200" VerticalAlignment="Center" HorizontalAlignment="Right"  />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                <Label Content="Период сканирования (сек)" VerticalAlignment="Center"  Margin="0,0,10,0" />
+                <TextBox x:Name="ScanPeriod" Width="200" VerticalAlignment="Center" HorizontalAlignment="Right"  />
+            </StackPanel>
         </StackPanel>
-        
+
         <!-- Кнопка Start/Stop -->
-        <Button x:Name="StartStopButton" Grid.Row="1" Grid.Column="0" Content="Старт" Width="100" HorizontalAlignment="Left" Margin="0,0,0,10" />
-        
+        <Button x:Name="StartStopSearch" Grid.Row="1" Grid.Column="0" Content="{Binding ButtonStartStopText }" Width="100" HorizontalAlignment="Left" Margin="0,0,0,10" />
+
         <!-- ListBox для вывода лога -->
-        <ListBox  x:Name="LogListBox" Grid.Row="2" Grid.Column="0" Margin="0,0,0,10">
+        <ListBox  x:Name="LogList" Grid.Row="2" Grid.Column="0" Margin="0,0,0,10">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding}" />
@@ -44,7 +58,7 @@
         
         
         <!-- ListBox для вывода результатов поиска -->
-        <ListBox  x:Name="ScannerResultListBox" Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Margin="10,0,0,10">
+        <ListBox  x:Name="ScannerResultList" Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Margin="10,0,0,10">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding}" />
