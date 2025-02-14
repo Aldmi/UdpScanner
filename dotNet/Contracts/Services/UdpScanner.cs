@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Reactive.Subjects;
 using CSharpFunctionalExtensions;
 
 namespace Contracts.Services;
@@ -14,13 +15,18 @@ public enum ScannerStatus
 public class UdpScanner
 {
 	private CancellationTokenSource? _cts;
+	private Subject<Result<string>> _logs = new(); 
+	
 	public required string SubNetworkAddress { get; init; }
 	public required int ListenPort { get; init; }
 	public required int RequestPort { get; init; }
+	public TimeSpan ScanPeriod { get; init; }
 	
 	public ScannerStatus Status { get; private set; } = ScannerStatus.Stopped;
 	
-	public TimeSpan ScanPeriod { get; set; }
+	public IObservable<Result<string>> Logs => _logs;
+	
+
 
 
 	
@@ -35,7 +41,9 @@ public class UdpScanner
 			var senderTask = CreateSenderTask(_cts.Token);
 			var listenerTask = CreateListenerTask(_cts.Token);
 			Status = ScannerStatus.Started;
+			LogWriteInfo("Started");
 			await await Task.WhenAny(senderTask, listenerTask);
+			LogWriteInfo("Stopped");
 			Status = ScannerStatus.Stopped;
 			return Result.Success(Status);
 		}
@@ -83,7 +91,8 @@ public class UdpScanner
 				var payload = ScannerPayload.Create(ListenPort);
 				var sendBytes = await socket.SendToAsync(payload.ToBuffer(), broadcastEp, ct);
 				await Task.Delay(ScanPeriod, CancellationToken.None);
-				Console.WriteLine($"Sending query to tag {sendBytes}  Ep={broadcastEp}  Payload= '{payload}'");
+				LogWriteInfo($"Sending query to tag {sendBytes}  Ep={broadcastEp}  Payload= '{payload}'");
+				//Console.WriteLine($"Sending query to tag {sendBytes}  Ep={broadcastEp}  Payload= '{payload}'");
 				//throw new Exception("DEBUG EXCEPTION");
 			}
 		}
@@ -94,7 +103,7 @@ public class UdpScanner
 	}
 
 
-	private int counetr = 0;
+	//private int counetr = 0;
 	
 	private async Task CreateListenerTask(CancellationToken ct)
 	{
@@ -106,7 +115,7 @@ public class UdpScanner
 		{
 			while (!ct.IsCancellationRequested)
 			{
-				Console.WriteLine("Waiting tag response");
+				LogWriteInfo("Waiting tag response");
 				var result = await listener.ReceiveAsync(ct);
 				var buffer = result.Buffer;
 				var tagIp = result.RemoteEndPoint.Address.ToString();
@@ -114,27 +123,37 @@ public class UdpScanner
 				//Обработка ответа
 				var tagPayload = TagPayload.FromBuffer(buffer);
 				//tagsDict.TryAdd(tagIp, tagPayload);
-				Console.WriteLine($"---------------------------------------");
+				//Console.WriteLine($"---------------------------------------");
 
 				// foreach (var tag in tagsDict)
 				// {
 				// 	Console.WriteLine($"TAGS= '{tag.Key}: {tag.Value}'");
 				// }
-				Console.WriteLine($"Received response from TAG {groupEp}=  '{tagPayload}'"); //Добавлять в список новый элемент по mac-addr
-				Console.WriteLine($"---------------------------------------\n\n");
+				LogWriteInfo($"Received response from TAG {groupEp}=  '{tagPayload}'");
+				//Console.WriteLine($"Received response from TAG {groupEp}=  '{tagPayload}'"); //Добавлять в список новый элемент по mac-addr
+				//Console.WriteLine($"---------------------------------------\n\n");
 
-				if (counetr++ > 3)
-				{
-					counetr = -1000;
-					throw new Exception("DEBUG EXCEPTION");
-				}
-
-			
+				// if (counetr++ > 3)
+				// {
+				// 	counetr = -1000;
+				// 	throw new Exception("DEBUG EXCEPTION");
+				// }
 			}
 		}
 		finally
 		{
 			listener.Close();
 		}
+	}
+
+
+	private void LogWriteError(string errorMessage)
+	{
+		_logs.OnNext(Result.Failure<string>(errorMessage));
+	}
+	
+	private void LogWriteInfo(string message)
+	{
+		_logs.OnNext(Result.Success(message));
 	}
 }

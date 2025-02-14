@@ -4,9 +4,9 @@ using ScannerWpf.ViewModels;
 
 namespace ScannerWpf;
 
-public class HelloBootstrapper : BootstrapperBase
+public class Bootstrapper : BootstrapperBase
 {
-	public HelloBootstrapper()
+	public Bootstrapper()
 	{
 		Initialize();
 	}

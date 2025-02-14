@@ -1,13 +1,11 @@
-
-using System.Net.Sockets;
 using Caliburn.Micro;
 using Contracts.Services;
+using ScannerWpf.Models;
 
 namespace ScannerWpf.ViewModels;
 
-public class ShellViewModel : PropertyChangedBase
+public class ShellViewModel : Screen
 {
-	
 	private UdpScanner? _udpScanner;
 	private bool _isStarted;
 	
@@ -72,11 +70,11 @@ public class ShellViewModel : PropertyChangedBase
 			NotifyOfPropertyChange(() => ButtonStartStopText);
 		}
 	}
-	
-	
-	public BindableCollection<string> LogList { get; private set; }
-	
-	public BindableCollection<string> ScannerResultList { get; private set; }
+
+
+	public BindableCollection<LogMessageModel> LogList { get; private set; } = [];
+
+	public BindableCollection<TagResponseModel> ScannerResultList { get; private set; } = [];
 	
 	#endregion
 
@@ -89,7 +87,14 @@ public class ShellViewModel : PropertyChangedBase
 		ListenPort = 11001;
 		ScanPeriod = TimeSpan.FromSeconds(1);
 		ButtonStartStopText = "Start";
-		LogList= ["ddsadas", "dgfsdgfsdfg"];
+		ScannerResultList.Add(new TagResponseModel(){Name = "Tag 1", MacAddress = "11-22-33-44-55-66", IpAddress = "192.168.01.1", CreatedAtUtc = DateTime.UtcNow});
+	}
+	
+	
+	
+	protected override void OnViewLoaded(object view)
+	{
+		base.OnViewLoaded(view);
 	}
 	
 	
@@ -102,34 +107,26 @@ public class ShellViewModel : PropertyChangedBase
 
 	public async Task StartStopSearch()
 	{
-		_udpScanner= _udpScanner ?? new UdpScanner
-		{
-			SubNetworkAddress = SubNetworkAddress,
-			RequestPort = RequestPort,
-			ListenPort = ListenPort,
-			ScanPeriod = ScanPeriod
-		};
+		CreateUdpScanner();
 
 		if (_isStarted)
 		{
 			_isStarted = false;
-			//await _udpScanner.Stop();
 			ButtonStartStopText = "Start";
+			await _udpScanner!.Stop();
 		}
 		else
 		{
 			_isStarted = true;
-			//var status = await _udpScanner.Start();
 			ButtonStartStopText = "Stop";
+			await _udpScanner!.Start();
 		}
-		
-		//MessageBox.Show(string.Format("Hello {0}!", SubNetworkAddress)); //Don't do this in real life :)
 	}
 
 
 	private void CreateUdpScanner()
 	{
-		if (_udpScanner == null)
+		if (_udpScanner is null)
 		{
 			_udpScanner= new UdpScanner
 			{
@@ -138,6 +135,8 @@ public class ShellViewModel : PropertyChangedBase
 				ListenPort = ListenPort,
 				ScanPeriod = ScanPeriod
 			};
+			
+			_udpScanner.Logs.Subscribe(item=>LogList.Add(new LogMessageModel(item)));
 			
 			//TODO: подписка на события от сканера (лог и полученные данные от тегов) 
 		}

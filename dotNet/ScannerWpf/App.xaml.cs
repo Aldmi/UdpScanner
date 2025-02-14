@@ -9,4 +9,7 @@ namespace ScannerWpf;
 /// </summary>
 public partial class App : Application
 {
+	
+	
+	
 }
