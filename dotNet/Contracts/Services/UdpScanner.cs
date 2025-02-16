@@ -15,17 +15,17 @@ public enum ScannerStatus
 public class UdpScanner
 {
 	private CancellationTokenSource? _cts;
-	private Subject<Result<string>> _logs = new(); 
+	private readonly Subject<Result<string>> _logsRx = new(); 
+	private readonly Subject<(TagPayload payload, IPAddress ip)> _tagResponseRx = new(); 
 	
 	public required string SubNetworkAddress { get; init; }
 	public required int ListenPort { get; init; }
 	public required int RequestPort { get; init; }
 	public TimeSpan ScanPeriod { get; init; }
-	
 	public ScannerStatus Status { get; private set; } = ScannerStatus.Stopped;
 	
-	public IObservable<Result<string>> Logs => _logs;
-	
+	public IObservable<Result<string>> LogsRx => _logsRx;
+	public IObservable<(TagPayload payload, IPAddress ip)> TagResponseRx => _tagResponseRx;
 
 
 
@@ -108,7 +108,7 @@ public class UdpScanner
 	private async Task CreateListenerTask(CancellationToken ct)
 	{
 		UdpClient listener = new UdpClient(ListenPort) { EnableBroadcast = true };
-		IPEndPoint groupEp = new IPEndPoint(IPAddress.Any, ListenPort);
+		//IPEndPoint groupEp = new IPEndPoint(IPAddress.Any, ListenPort);
 		//IPEndPoint groupEp = new IPEndPoint(IPAddress.Parse(localIp), listenPort);  //слушаю на своем Ip конкретный порт для ответа
 
 		try
@@ -118,21 +118,12 @@ public class UdpScanner
 				LogWriteInfo("Waiting tag response");
 				var result = await listener.ReceiveAsync(ct);
 				var buffer = result.Buffer;
-				var tagIp = result.RemoteEndPoint.Address.ToString();
+				var tagIp = result.RemoteEndPoint.Address;
 
 				//Обработка ответа
 				var tagPayload = TagPayload.FromBuffer(buffer);
-				//tagsDict.TryAdd(tagIp, tagPayload);
-				//Console.WriteLine($"---------------------------------------");
-
-				// foreach (var tag in tagsDict)
-				// {
-				// 	Console.WriteLine($"TAGS= '{tag.Key}: {tag.Value}'");
-				// }
-				LogWriteInfo($"Received response from TAG {groupEp}=  '{tagPayload}'");
-				//Console.WriteLine($"Received response from TAG {groupEp}=  '{tagPayload}'"); //Добавлять в список новый элемент по mac-addr
-				//Console.WriteLine($"---------------------------------------\n\n");
-
+				_tagResponseRx.OnNext((tagPayload, tagIp));
+				LogWriteInfo($"Received response from TAG '{tagPayload}'");
 				// if (counetr++ > 3)
 				// {
 				// 	counetr = -1000;
@@ -149,11 +140,11 @@ public class UdpScanner
 
 	private void LogWriteError(string errorMessage)
 	{
-		_logs.OnNext(Result.Failure<string>(errorMessage));
+		_logsRx.OnNext(Result.Failure<string>(errorMessage));
 	}
 	
 	private void LogWriteInfo(string message)
 	{
-		_logs.OnNext(Result.Success(message));
+		_logsRx.OnNext(Result.Success(message));
 	}
 }

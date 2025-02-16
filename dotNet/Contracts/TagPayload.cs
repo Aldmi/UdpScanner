@@ -1,15 +1,13 @@
 using System.Net;
-using System.Net.Sockets;
 using System.Text;
 
 namespace Contracts;
 
 
-
 public record TagPayload(string Name, string MacAddress, DateTime CreatedAtUtc)
 {
 	
-	public static TagPayload Create(string name, string macAddress)
+	public static TagPayload Create(string name,  string macAddress)
 	{
 		var payload = new TagPayload(name, macAddress, DateTime.UtcNow);
 		return payload;

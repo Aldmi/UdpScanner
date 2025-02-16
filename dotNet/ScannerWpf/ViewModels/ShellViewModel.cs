@@ -7,6 +7,7 @@ namespace ScannerWpf.ViewModels;
 public class ShellViewModel : Screen
 {
 	private UdpScanner? _udpScanner;
+	List<IDisposable> _udpScannerSubscriptions = [];
 	private bool _isStarted;
 	
 	
@@ -72,7 +73,7 @@ public class ShellViewModel : Screen
 	}
 
 
-	public BindableCollection<LogMessageModel> LogList { get; private set; } = [];
+	public BindableCollection<LogMessageModel> LogList { get; private set; } = [];//TODO: разукрасить вывод лога
 
 	public BindableCollection<TagResponseModel> ScannerResultList { get; private set; } = [];
 	
@@ -87,7 +88,6 @@ public class ShellViewModel : Screen
 		ListenPort = 11001;
 		ScanPeriod = TimeSpan.FromSeconds(1);
 		ButtonStartStopText = "Start";
-		ScannerResultList.Add(new TagResponseModel(){Name = "Tag 1", MacAddress = "11-22-33-44-55-66", IpAddress = "192.168.01.1", CreatedAtUtc = DateTime.UtcNow});
 	}
 	
 	
@@ -96,7 +96,7 @@ public class ShellViewModel : Screen
 	{
 		base.OnViewLoaded(view);
 	}
-	
+
 	
 	
 	public bool CanStartStopSearch => !string.IsNullOrWhiteSpace(SubNetworkAddress) &&
@@ -128,7 +128,7 @@ public class ShellViewModel : Screen
 	{
 		if (_udpScanner is null)
 		{
-			_udpScanner= new UdpScanner
+			_udpScanner = new UdpScanner
 			{
 				SubNetworkAddress = SubNetworkAddress,
 				RequestPort = RequestPort,
@@ -136,9 +136,38 @@ public class ShellViewModel : Screen
 				ScanPeriod = ScanPeriod
 			};
 			
-			_udpScanner.Logs.Subscribe(item=>LogList.Add(new LogMessageModel(item)));
-			
-			//TODO: подписка на события от сканера (лог и полученные данные от тегов) 
+			var logsRxSubs = _udpScanner.LogsRx.Subscribe(item => LogList.Add(new LogMessageModel(item)));
+			var tagResponseRxSubs= _udpScanner.TagResponseRx.Subscribe(tagResponse =>
+			{
+				var tagKey = tagResponse.ip.ToString();
+				var existingItem = ScannerResultList.FirstOrDefault(tagResponseModel => tagResponseModel.IpAddress == tagKey);
+				//UPDATE
+				if (existingItem is not null)
+				{
+					existingItem.Name = tagResponse.payload.Name;
+					existingItem.MacAddress = tagResponse.payload.MacAddress;
+					existingItem.CreatedAtUtc = tagResponse.payload.CreatedAtUtc;
+				}
+				//ADD
+				else
+				{
+					ScannerResultList.Add(new TagResponseModel
+					{
+						Name = tagResponse.payload.Name,
+						IpAddress = tagKey,
+						MacAddress = tagResponse.payload.MacAddress,
+						CreatedAtUtc = tagResponse.payload.CreatedAtUtc
+					});
+				}
+			});
+			_udpScannerSubscriptions.AddRange([logsRxSubs, tagResponseRxSubs]);
 		}
+	}
+	
+	
+	protected override Task OnDeactivateAsync(bool close, CancellationToken cancellationToken)
+	{
+		_udpScannerSubscriptions.ForEach(x => x.Dispose());
+		return base.OnDeactivateAsync(close, cancellationToken);
 	}
 }

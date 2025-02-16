@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Buffers;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Contracts;
@@ -28,11 +29,13 @@ Task tagTask = Task.Factory.StartNew(async () =>
 			{
 				//Слушаем listenPort для получения заапроса от сканера
 				Console.WriteLine("Waiting scanner query");
-				byte[] bytes = listener.Receive(ref groupEp); //TODO: заменить на ReceiveAsync
-				var scannerIpAddress = groupEp.Address;
+				var result =  listener.ReceiveAsync().GetAwaiter().GetResult();
+				var buffer = result.Buffer;
+				var scannerIpAddress = result.RemoteEndPoint.Address;
+				
 				Console.WriteLine($"Received broadcast from scanner {groupEp} :");
                 //Обработка broadcast сообщения от scanner
-				var scannerPayload= ScannerPayload.FromBuffer(bytes);
+				var scannerPayload= ScannerPayload.FromBuffer(buffer);
 				Console.WriteLine($"ScannerPayload {scannerPayload}");
 
 				//Создание и Отправка ответа сканеру.
