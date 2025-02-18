@@ -34,6 +34,22 @@ var udpScanner= new UdpScanner
 //  	await udpScanner.Stop();
 //  });
 
+udpScanner.LogsRx
+	.Subscribe(result =>
+	{
+		var message= result.IsFailure ? $"ERROR= {result.Error}" : result.Value;
+		Console.WriteLine($"LOG: {message}");
+	} );
+
+udpScanner.TagResponseRx
+	.Subscribe(result =>
+	{
+		var ip = result.ip;
+		Console.WriteLine("---------------------------------------");
+		Console.WriteLine($"TAG: [{ip}]  payload=[{result.payload}]");
+		Console.WriteLine("---------------------------------------");
+	} );
+
 
 var res= await udpScanner.Start();
 
