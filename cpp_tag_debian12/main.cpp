@@ -2,13 +2,20 @@
 #include <cstring>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include "src/Payload/TagPayload.h"
 
 const int BROADCAST_PORT = 11000; // Порт для широковещательной рассылки
 const int BUFFER_SIZE = 1024;     // Размер буфера для приема данных
 
-
 int main()
 {
+    //Получить информацию про устройство
+    auto tagPayload= TagPayload();
+    tagPayload.collectInformation();
+    tagPayload.printMACAddress();
+    //------------------------------------
+
+
     // Создаем UDP-сокет
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {

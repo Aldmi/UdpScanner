@@ -2,78 +2,92 @@
 #define UDP_TAG_TAGPAYLOAD_H
 
 #include <iostream>
-//#include <winsock2.h>
-//#include <iphlpapi.h>
+#include <fstream>
+#include <sstream>
+#include <string>
 #include <iomanip>
+#include <vector>
+#include <map>
+#include <filesystem>
 
 using namespace std;
+namespace fs = std::filesystem;
+
 
 class TagPayload
 {
+private:
+    map<string, string> macAddressMap;
+
+    /*
+    На Linux можно прочитать MAC-адрес из файла в /sys/class/net/
+    interface - имя интерфейса (eth0)
+    */
+    int readAllMacAddress()
+    {
+        string directoryPath = "/sys/class/net/";
+        // Проверяем, существует ли каталог
+        if (!fs::exists(directoryPath))
+        {
+            std::cerr << "Каталог не существует: " << directoryPath << std::endl;
+            return -1;
+        }
+
+        // Итерируем по содержимому каталога
+        for (const auto& entry: fs::directory_iterator(directoryPath))
+        {
+            if (entry.is_directory())
+            {
+                auto interfacePath= entry.path().filename().string();
+                string filePath= directoryPath + interfacePath + "/address"; //Путь до файла с mac адресом
+                if(fs::is_regular_file(filePath))
+                {
+                    auto macAddress= readMACAddressFromFile(filePath);
+                    macAddressMap[interfacePath]=macAddress;
+                }
+            }
+        }
+        return 0;
+    }
+
+    static string readMACAddressFromFile(const string& filePath)
+    {
+        ifstream file(filePath);
+        string macAddress;
+        if (file)
+        {
+            getline(file, macAddress);
+        }
+        return macAddress;
+    }
+
 
 public:
-//    string printMACAddress()
-//    {
-//        ostringstream oss;
-//        ULONG bufferSize = 0;
-//        GetAdaptersAddresses(AF_UNSPEC, 0, nullptr, nullptr, &bufferSize);
-//        IP_ADAPTER_ADDRESSES* adapterAddresses = (IP_ADAPTER_ADDRESSES*)malloc(bufferSize);
-//        if (GetAdaptersAddresses(AF_UNSPEC, 0, nullptr, adapterAddresses, &bufferSize) == ERROR_SUCCESS)
-//        {
-//            oss << "["<< endl;
-//            for (IP_ADAPTER_ADDRESSES* adapter = adapterAddresses; adapter != nullptr; adapter = adapter->Next)
-//            {
-//                if (adapter->PhysicalAddressLength > 0)
-//                {
-//                    string adapterName = PWCHARToString(adapter->FriendlyName);
-//                    oss << "Adapter: " << adapterName << std::endl;
-//                    oss << "MAC Address: ";
-//                    for (DWORD i = 0; i < adapter->PhysicalAddressLength; i++)
-//                    {
-//                        oss << hex << setw(2) << setfill('0') << (int)adapter->PhysicalAddress[i];
-//                        if (i < adapter->PhysicalAddressLength - 1)
-//                        {
-//                            oss << ":";
-//                        }
-//                    }
-//                    oss << dec << endl;
-//                }
-//            }
-//            oss << "]";
-//        }
-//
-//        free(adapterAddresses);
-//        return oss.str();
-//    }
-//
-//
-//
-//
-//    std::string PWCHARToString(PWCHAR wideStr)
-//    {
-//        if (!wideStr) {
-//            return ""; // Возвращаем пустую строку, если входной указатель равен nullptr
-//        }
-//
-//        // Определяем длину строки после преобразования
-//        int length = WideCharToMultiByte(CP_UTF8, 0, wideStr, -1, nullptr, 0, nullptr, nullptr);
-//        if (length == 0) {
-//            return ""; // Ошибка преобразования
-//        }
-//
-//        // Выделяем буфер для многобайтовой строки
-//        std::string narrowStr(length, 0);
-//
-//        // Выполняем преобразование
-//        WideCharToMultiByte(CP_UTF8, 0, wideStr, -1, &narrowStr[0], length, nullptr, nullptr);
-//
-//        // Убираем завершающий нулевой символ
-//        narrowStr.pop_back();
-//
-//        return narrowStr;
-//    }
+    int collectInformation()
+    {
+        int result=0;
+        result= readAllMacAddress();
+        if(result < 0)
+            return result;
+
+        return result;
+    }
 
 
+    void printMACAddress()
+    {
+        if(macAddressMap.empty())
+        {
+            std::cout << "Информация о системе не собрана" << ":" << std::endl;
+            return;
+        }
+
+        std::cout << "Информация" << ":" << std::endl;
+        for (const auto& [interface, macAddress] : macAddressMap)
+        {
+            std::cout << interface << ":" << "\t" << macAddress << std::endl;
+        }
+    }
 };
 
 
