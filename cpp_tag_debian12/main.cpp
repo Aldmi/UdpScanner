@@ -60,7 +60,8 @@ int main()
         std::cout << "Получено от " << inet_ntoa(clientAddr.sin_addr) << ": " << buffer << std::endl;
 
         // Отправляем ответ
-        std::string response = "Hello from server!";
+        clientAddr.sin_port = htons(11001);
+        std::string response = "Device1_10-20-30-40-5F-FF_1739006312";
         if (sendto(sockfd, response.c_str(), response.size(), 0, (struct sockaddr*)&clientAddr, clientAddrLen) < 0)
         {
             std::cerr << "Ошибка при отправке ответа" << std::endl;
