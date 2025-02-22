@@ -7,7 +7,7 @@ const string VER= "1.0.0";
 
 int main()
 {
-    std::cout << APP_NAME <<" : " << VER << std::endl;
+    cout << APP_NAME <<" : " << VER << endl;
 
     //Прочитать настройки из .env---------
     int listenPort= 11000;

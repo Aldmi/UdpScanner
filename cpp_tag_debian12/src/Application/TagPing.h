@@ -97,6 +97,7 @@ public:
     //Запуск основной задачи
     bool StartWork(bool& cancelFlag)
     {
+        cout << endl;
         while (!cancelFlag)
         {
             Print();
@@ -210,6 +211,7 @@ public:
                 }
 
                 //Читаем данные от сканера.
+                buffer[recvLen] = '\0'; // Добавляем завершающий нулевой символ
                 auto tagRequest= TagRequest::CreateFromBuffer(buffer, recvLen);
                 std::cout << "TagRequest Form " << inet_ntoa(clientAddr.sin_addr) << ": " << tagRequest.toString() << std::endl;
 

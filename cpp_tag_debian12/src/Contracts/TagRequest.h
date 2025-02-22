@@ -23,11 +23,6 @@ public:
 
     static TagRequest CreateFromBuffer(const char* buffer, ssize_t size)
     {
-        if(buffer[size - 1] != '\0')
-        {
-            throw std::invalid_argument( "[TagRequest.CreateFromBuffer] not string buffer (last buffer item not \0)" );
-        }
-
         auto parts= split(buffer, '_');
         if(parts.size() != 2)
         {
