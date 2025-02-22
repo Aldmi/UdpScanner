@@ -73,6 +73,10 @@ public:
         return result;
     }
 
+    string getInformation()
+    {
+        return "11:22:33:44:55";
+    }
 
     void printMACAddress()
     {

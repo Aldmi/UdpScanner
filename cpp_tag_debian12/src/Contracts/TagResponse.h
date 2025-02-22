@@ -1,6 +1,11 @@
 #ifndef UDP_TAG_TAGRESPONSE_H
 #define UDP_TAG_TAGRESPONSE_H
 
+#include <sstream>
+#include "../Shared/Shared.h"
+
+using namespace std;
+
 ///ответ сканеру.
 class TagResponse
 {
@@ -23,7 +28,7 @@ public:
         return oss.str();
     }
 
-    string Print()
+    string toString()
     {
         std::ostringstream oss;
         oss
