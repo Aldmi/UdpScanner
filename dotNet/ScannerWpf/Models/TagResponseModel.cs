@@ -25,17 +25,18 @@ public class TagResponseModel : PropertyChangedBase
 			NotifyOfPropertyChange(() => Name);
 		}
 	}
-	
-	private string _macAddress;
-	public string MacAddress
+
+	private Dictionary<string, string> _macAddressDict;
+	public Dictionary<string, string> MacAddressDict
 	{
-		get => _macAddress;
+		get => _macAddressDict;
 		set
 		{
-			_macAddress = value;
-			NotifyOfPropertyChange(() => MacAddress);
+			_macAddressDict = value;
+			NotifyOfPropertyChange(() => MacAddressDict);
 		}
 	}
+	
 	
 	private DateTime _createdAtUtc;
 	public DateTime CreatedAtUtc
