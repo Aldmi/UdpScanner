@@ -113,14 +113,21 @@ public class ShellViewModel : Screen
 		{
 			_isStarted = false;
 			ButtonStartStopText = "Start";
-			await _udpScanner!.Stop();
+			_udpScanner!.Stop();
 		}
 		else
 		{
 			_isStarted = true;
 			ButtonStartStopText = "Stop";
+			ScannerResultList.Clear();
 			await _udpScanner!.Start();
 		}
+	}
+
+
+	public void ClearLogButton()
+	{
+		LogList.Clear();
 	}
 
 
@@ -167,6 +174,7 @@ public class ShellViewModel : Screen
 	
 	protected override Task OnDeactivateAsync(bool close, CancellationToken cancellationToken)
 	{
+		_udpScanner?.Stop();
 		_udpScannerSubscriptions.ForEach(x => x.Dispose());
 		return base.OnDeactivateAsync(close, cancellationToken);
 	}

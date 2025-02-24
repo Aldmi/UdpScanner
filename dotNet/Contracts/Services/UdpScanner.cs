@@ -64,17 +64,18 @@ public class UdpScanner
 		}
 		finally
 		{
-			await Stop();
+			 Stop();
 			_cts?.Dispose();
 		}
 	}
 
 
-	public async Task Stop()
+	public void Stop()
 	{
 		if (_cts is { IsCancellationRequested: false })
 		{
-			await _cts?.CancelAsync()!;
+			//await _cts?.CancelAsync()!;
+			 _cts?.Cancel();
 		}
 	}
 

@@ -4,8 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:ScannerWpf.Views"
-             Width="600"
-             Height="600"
+             WindowStyle="ToolWindow" 
+             ResizeMode="NoResize"
+             Width="1000"
+             Height="800"
+             Title="UDP Scanner"
            >
 
     <Grid Margin="10">
@@ -22,33 +25,58 @@
         </Grid.ColumnDefinitions>
         
         <!-- Настройки -->
-        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical">
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                <Label Content="Подсеть (ххх.ххх.х):" VerticalAlignment="Center" Margin="0,0,10,0" />
-                <TextBox x:Name="SubNetworkAddress" Width="200" VerticalAlignment="Center" HorizontalAlignment="Right" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                <Label Content="Порт запроса" VerticalAlignment="Center"  Margin="0,0,10,0" />
-                <TextBox x:Name="RequestPort" Width="200" VerticalAlignment="Center" HorizontalAlignment="Right" />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                <Label Content="Порт ответа" VerticalAlignment="Center"  Margin="0,0,10,0" />
-                <TextBox x:Name="ListenPort" Width="200" VerticalAlignment="Center" HorizontalAlignment="Right"  />
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                <Label Content="Период сканирования (сек)" VerticalAlignment="Center"  Margin="0,0,10,0" />
-                <TextBox x:Name="ScanPeriod" Width="200" VerticalAlignment="Center" HorizontalAlignment="Right"  />
-            </StackPanel>
-        </StackPanel>
+        <Grid Grid.Row="0" Grid.Column="0" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/> <!-- Для Label -->
+                <ColumnDefinition Width="Auto"/> <!-- Для TextBox -->
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Label Grid.Row="0" Grid.Column="0" Content="Подсеть (ххх.ххх.х):" Margin="0,0,10,0"/>
+            <TextBox x:Name="SubNetworkAddress" Grid.Column="1" Grid.Row="0" Width="200" Margin="0,10,0,0"/>
+
+            <Label Grid.Row="1" Grid.Column="0" Content="Порт запроса:"  Margin="0,0,10,0"/>
+            <TextBox x:Name="RequestPort" Grid.Column="1" Grid.Row="1" Width="200"  Margin="0,10,0,0"/>
+            
+            <Label Grid.Row="2" Grid.Column="0" Content="Порт ответа:"  Margin="0,0,10,0"/>
+            <TextBox x:Name="ListenPort"  Grid.Column="1" Grid.Row="2" Width="200"  Margin="0,10,0,0"/>
+            
+            <Label Grid.Row="3" Grid.Column="0" Content="Период сканирования (сек):" Margin="0,0,10,0"/>
+            <TextBox x:Name="ScanPeriod" Grid.Column="1" Grid.Row="3" Width="200"  Margin="0,10,0,0"/>
+        </Grid>
 
         <!-- Кнопка Start/Stop -->
         <Button x:Name="StartStopSearch" Grid.Row="1" Grid.Column="0" Content="{Binding ButtonStartStopText }" Width="100" HorizontalAlignment="Left" Margin="0,0,0,10" />
 
         <!-- ListBox для вывода лога -->
-        <ListBox  x:Name="LogList" Grid.Row="2" Grid.Column="0" Margin="0,0,0,10">
+        <ListBox
+            x:Name="LogList"
+            Grid.Row="2"
+            Grid.Column="0"
+            Margin="0,0,0,10"
+            MinWidth="800"
+            MaxWidth="1000"
+            Background="Black"
+            >
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Message}" />
+                    <TextBlock Text="{Binding Message}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="Green"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsError}" Value="True">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
@@ -58,7 +86,13 @@
         
         
         <!-- ListBox для вывода результатов поиска -->
-        <ListBox  x:Name="ScannerResultList" Grid.Row="0" Grid.Column="1" Grid.RowSpan="3" Margin="10,0,0,10">
+        <ListBox  
+            x:Name="ScannerResultList"
+            Grid.Row="0"
+            Grid.Column="1"
+            Grid.RowSpan="3"
+            Margin="10,0,0,10"
+            >
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Vertical">
