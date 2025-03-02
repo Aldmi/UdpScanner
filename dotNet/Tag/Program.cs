@@ -3,18 +3,38 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Contracts;
+using DotNetEnv;
+using Microsoft.Extensions.Configuration;
 
 Console.WriteLine("Tag Starting....");
-var cts = new CancellationTokenSource(); //TODO: сработка токена по нажатию кнопки 'q' в консоли
 
-//From settings----------------------------------------------------------
-const int listenPort = 11000;
-const string tagName = "Device1";
+// Загрузка настроек
+Env.Load();
+string? listenPortSetting = Environment.GetEnvironmentVariable("UDP_TAG__listenPort");
+if (!int.TryParse(listenPortSetting, out var _listenPort))
+{
+	Console.WriteLine($"Listening on port Invalid  '{listenPortSetting}'");
+	Console.ReadKey();
+	return -1;
+}
 
-//Init-----------------------------------------------------------------
+string? tagNameSetting = Environment.GetEnvironmentVariable("UDP_TAG__tagName");
+if (string.IsNullOrEmpty(tagNameSetting))
+{
+	Console.WriteLine($"TagName Invalid  '{tagNameSetting}'");
+	Console.ReadKey();
+	return -1;
+}
+
+string tagName = tagNameSetting;
+int listenPort = _listenPort;
+
+
+//Формируем Payload Тега
 var macAddress = "10-20-30-40-5F-FF";
-var tagIpAddress= NetworkHelpers.GetLocalIpAddress("192.168.1");
 
+
+var cts = new CancellationTokenSource(); //TODO: сработка токена по нажатию кнопки 'q' в консоли
 //Listener---------------------------------------------------------------
 Task tagTask = Task.Factory.StartNew(async () =>
 	{
@@ -74,3 +94,4 @@ catch (Exception e)
 
 Console.WriteLine("Tag Stopped");
 Console.ReadKey();
+return 0;
