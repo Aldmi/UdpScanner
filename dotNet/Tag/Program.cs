@@ -1,10 +1,12 @@
 ﻿using System.Buffers;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using Contracts;
 using DotNetEnv;
 using Microsoft.Extensions.Configuration;
+using Tag;
 
 Console.WriteLine("Tag Starting....");
 
@@ -31,7 +33,7 @@ int listenPort = _listenPort;
 
 
 //Формируем Payload Тега
-var macAddress = "10-20-30-40-5F-FF";
+var macAddress = SystemInfoCollector.GetUpMacAddress();
 
 
 var cts = new CancellationTokenSource(); //TODO: сработка токена по нажатию кнопки 'q' в консоли

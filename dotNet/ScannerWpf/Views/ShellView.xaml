@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:ScannerWpf.Views"
              WindowStyle="ToolWindow" 
              ResizeMode="NoResize"
-             Width="1200"
+             Width="1400"
              Height="800"
              Title="UDP Scanner"
            >

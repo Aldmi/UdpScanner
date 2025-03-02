@@ -152,12 +152,7 @@ public class ShellViewModel : Screen
 				if (existingItem is not null)
 				{
 					existingItem.Name = tagResponse.payload.Name;
-					existingItem.MacAddressDict = new()
-					{
-						{ "One", "11-22-33-44-55" },
-						{ "Two", "11-22-33-44-FF" },
-						{ "Three", "11-22-33-44-AA" }
-					};
+					existingItem.MacAddressDict = tagResponse.payload.MacAddress;
 					existingItem.CreatedAtUtc = tagResponse.payload.CreatedAtUtc;
 				}
 				//ADD
@@ -167,12 +162,7 @@ public class ShellViewModel : Screen
 					{
 						Name = tagResponse.payload.Name,
 						IpAddress = tagKey,
-						MacAddressDict = new()
-						{
-							{ "One", "11-22-33-44-55" },
-							{ "Two", "11-22-33-44-FF" },
-							{ "Three", "11-22-33-44-AA" }
-						},
+						MacAddressDict = tagResponse.payload.MacAddress,
 						CreatedAtUtc = tagResponse.payload.CreatedAtUtc
 					});
 				}
