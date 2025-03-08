@@ -63,7 +63,7 @@ public record TagPayload(string Name, Dictionary<string, string> MacAddress, Dat
 
 	public override string ToString()
 	{
-		string macAddressString = string.Join(";", MacAddress.Select(x => $"{x.Key}={x.Value}\n"));
+		string macAddressString = string.Join(";\n", MacAddress.Select(x => $"{x.Key}={x.Value}"));
 		return $"Tag name= {Name} \t Payload= '{macAddressString}' \t Created at UTC= {CreatedAtUtc}";
 	}
 }

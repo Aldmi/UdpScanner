@@ -40,44 +40,51 @@ var cts = new CancellationTokenSource(); //TODO: сработка токена �
 //Listener---------------------------------------------------------------
 Task tagTask = Task.Factory.StartNew(async () =>
 	{
-		UdpClient listener = new UdpClient(listenPort) { EnableBroadcast = true };
-		//Принимаю broadcast.
-		//IPAddress.Loopback - позволяет серверу принимать пакеты, только в локальной сети
-		//IPAddress.Any - позволяет серверу принимать пакеты, отправленные на любой из IP-адресов машины
-		IPEndPoint groupEp = new IPEndPoint(IPAddress.Loopback, listenPort); 
-		try
+		while (!cts.IsCancellationRequested)
 		{
-			while (!cts.IsCancellationRequested)
+			Console.WriteLine("listener Starting....");
+			UdpClient listener = new UdpClient(listenPort) { EnableBroadcast = true };
+			try
 			{
-				//Слушаем listenPort для получения заапроса от сканера
-				Console.WriteLine("Waiting scanner query");
-				var result =  listener.ReceiveAsync().GetAwaiter().GetResult();
-				var buffer = result.Buffer;
-				var scannerIpAddress = result.RemoteEndPoint.Address;
-				
-				Console.WriteLine($"Received broadcast from scanner {groupEp} :");
-                //Обработка broadcast сообщения от scanner
-				var scannerPayload= ScannerPayload.FromBuffer(buffer);
-				Console.WriteLine($"ScannerPayload {scannerPayload}");
+				while (!cts.IsCancellationRequested)
+				{
+					//Слушаем listenPort для получения заапроса от сканера
+					Console.WriteLine("Waiting scanner query");
+					var result = await listener.ReceiveAsync(cts.Token);
+					var buffer = result.Buffer;
+					var scannerIpAddress = result.RemoteEndPoint.Address;
 
-				//Создание и Отправка ответа сканеру.
-				var epScanner = new IPEndPoint(scannerIpAddress, scannerPayload.ListenPortNumber); //берет из запроса ip сканера и порт (куда отправить ответ)
-				var tagPayload = TagPayload.Create(tagName, macAddress);
-				var sendBytes= listener.Send(tagPayload.ToBuffer(), epScanner);
-				Console.WriteLine($"Sent message to scanner {sendBytes} epScanner='{epScanner}' tagPayload= '{tagPayload}'");
+					Console.WriteLine($"Received broadcast from scanner {scannerIpAddress}");
+					//Обработка broadcast сообщения от scanner
+					var scannerPayload = ScannerPayload.FromBuffer(buffer);
+					Console.WriteLine($"ScannerPayload {scannerPayload}");
+
+					//Создание и Отправка ответа сканеру.
+					var epScanner = new IPEndPoint(scannerIpAddress, scannerPayload.ListenPortNumber); //берет из запроса ip сканера и порт (куда отправить ответ)
+					var tagPayload = TagPayload.Create(tagName, macAddress);
+					var sendBytes = listener.Send(tagPayload.ToBuffer(), epScanner);
+					Console.WriteLine($"Sent message to scanner {sendBytes} epScanner='{epScanner}' tagPayload= '{tagPayload}'");
+				}
 			}
-		}
-		catch (SocketException e)
-		{
-			Console.WriteLine(e);
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e);
-		}
-		finally
-		{
-			listener.Close();
+			catch (SocketException e)
+			{
+				Console.WriteLine(e);
+			}
+			catch (OperationCanceledException e)
+			{
+				Console.WriteLine(e);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+			}
+			finally
+			{
+				listener.Close();
+			}
+			
+			Console.WriteLine("listener ReStarting....");
+			await Task.Delay(1000);
 		}
 	},
 	cts.Token,
