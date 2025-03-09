@@ -75,7 +75,19 @@ public:
 
     string getInformation()
     {
-        return "11:22:33:44:55";
+        std::ostringstream oss;
+
+        for (const auto& [interface, macAddress] : macAddressMap)
+        {
+            oss << interface << "=" << macAddress << ";";   //lo=00:00:00:00:00:00;enp4s0=A8:5E:45:56:B6:50
+        }
+
+        std::string result = oss.str();
+        if (!result.empty() && result.back() == ';') {
+            result.pop_back(); // Удаление последнего символа
+        }
+
+        return result;
     }
 
     void printMACAddress()

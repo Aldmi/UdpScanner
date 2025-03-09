@@ -7,6 +7,7 @@
 using namespace std;
 
 ///ответ сканеру.
+/// $"{Name}_{macAddressString}_{unixTime}";
 class TagResponse
 {
 public:
