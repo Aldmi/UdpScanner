@@ -38,7 +38,7 @@ var macAddress = SystemInfoCollector.GetUpMacAddress();
 
 var cts = new CancellationTokenSource(); //TODO: сработка токена по нажатию кнопки 'q' в консоли
 //Listener---------------------------------------------------------------
-Task tagTask = Task.Factory.StartNew(async () =>
+var tagTask = Task.Run(async () =>
 	{
 		while (!cts.IsCancellationRequested)
 		{
@@ -53,12 +53,12 @@ Task tagTask = Task.Factory.StartNew(async () =>
 					var result = await listener.ReceiveAsync(cts.Token);
 					var buffer = result.Buffer;
 					var scannerIpAddress = result.RemoteEndPoint.Address;
-
+					
 					Console.WriteLine($"Received broadcast from scanner {scannerIpAddress}");
 					//Обработка broadcast сообщения от scanner
 					var scannerPayload = ScannerPayload.FromBuffer(buffer);
 					Console.WriteLine($"ScannerPayload {scannerPayload}");
-
+					
 					//Создание и Отправка ответа сканеру.
 					var epScanner = new IPEndPoint(scannerIpAddress, scannerPayload.ListenPortNumber); //берет из запроса ip сканера и порт (куда отправить ответ)
 					var tagPayload = TagPayload.Create(tagName, macAddress);
@@ -87,10 +87,7 @@ Task tagTask = Task.Factory.StartNew(async () =>
 			await Task.Delay(1000);
 		}
 	},
-	cts.Token,
-	TaskCreationOptions.LongRunning,
-	TaskScheduler.Default);
-
+	cts.Token);
 
 try
 {
